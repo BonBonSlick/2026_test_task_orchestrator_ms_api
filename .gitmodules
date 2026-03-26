@@ -1,0 +1,6 @@
+[submodule "service-orders"]
+	path = service-orders
+	url = git@github.com:BonBonSlick/service-orders.git
+[submodule "service-products"]
+	path = service-products
+	url = git@github.com:BonBonSlick/service-products.git
