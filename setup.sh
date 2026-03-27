@@ -12,18 +12,23 @@ fi
 # 2. Fire up Docker
 docker compose up -d --build
 
-# 3. Fix Git Ownership & Setup Environment for Products
-docker compose exec products-php git config --global --add safe.directory /var/www/html
-if [ ! -f "service-products/.env" ]; then
-    cp service-products/.env.dev service-products/.env 2>/dev/null || touch service-products/.env
-fi
-docker compose exec products-php composer install
+# Function to setup a service
+setup_service() {
+    local service_name=$1
+    local env_file=$2
+    local uri=$3
 
-# 4. Fix Git Ownership & Setup Environment for Orders
-docker compose exec orders-php git config --global --add safe.directory /var/www/html
-if [ ! -f "service-orders/.env" ]; then
-    cp service-orders/.env.dev service-orders/.env 2>/dev/null || touch service-orders/.env
-fi
-docker compose exec orders-php composer install
+    echo "Setting up $service_name..."
+    docker compose exec $service_name git config --global --add safe.directory /var/www/html
+
+    # Create .env if missing, or ensure DEFAULT_URI is present
+    if [ ! -f "$env_file" ]; then touch "$env_file"; fi
+    grep -q "DEFAULT_URI" "$env_file" || echo "DEFAULT_URI=$uri" >> "$env_file"
+
+    docker compose exec $service_name composer install
+}
+
+setup_service "products-php" "service-products/.env" "http://localhost:8081"
+setup_service "orders-php" "service-orders/.env" "http://localhost:8082"
 
 echo "System ready!"
