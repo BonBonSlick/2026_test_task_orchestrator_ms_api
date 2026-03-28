@@ -1,8 +1,15 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # Install system dependencies
 RUN apk add --no-cache \
-    icu-dev libzip-dev zip unzip git rabbitmq-c-dev libpq-dev
+    icu-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    git \
+    rabbitmq-c-dev \
+    postgresql-dev \
+    linux-headers
 
 # Install PHP extensions
 RUN docker-php-ext-install intl pdo pdo_pgsql zip

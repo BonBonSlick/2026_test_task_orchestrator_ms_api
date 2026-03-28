@@ -2,6 +2,8 @@ services:
   # --- SHARED INFRASTRUCTURE ---
   database:
     image: postgres:16-alpine
+    ports:
+      - "5434:5432" # Map [Host Port]:[Container Port]
     environment:
       POSTGRES_USER: symfony
       POSTGRES_PASSWORD: password
@@ -25,9 +27,10 @@ services:
       - ./service-products:/var/www/html
     environment:
       # Use the correct user (symfony) and the DB you want to create/use
-      DATABASE_URL: "postgresql://symfony:password@database:5432/products_db"
+      DATABASE_URL: "postgresql://symfony:password@database:5432/products_db?serverVersion=16.0.0"
       DEFAULT_URI: "http://localhost:8081" # Matches products-web port
       APP_ENV: dev
+      POSTGRES_VERSION: "16.0.0"
       APP_SECRET: some_secret_string
 
   products-web:
@@ -49,6 +52,7 @@ services:
       - ./service-orders:/var/www/html
     environment:
       DATABASE_URL: "postgresql://symfony:password@database:5432/orders_db"
+      POSTGRES_VERSION: "16.0.0"
       DEFAULT_URI: "http://localhost:8082" # Matches orders-web port
       APP_ENV: dev
       APP_SECRET: some_secret_string

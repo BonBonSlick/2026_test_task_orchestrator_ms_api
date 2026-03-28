@@ -1,13 +1,21 @@
 #!/bin/bash
+set -e # Stop script if any command fails
 
-# 1. Clone repos if they don't exist
-if [ ! -d "service-products" ]; then
-    git clone git@github.com:BonBonSlick/2026_test_task_products_ms_api.git service-products
-fi
+# 1. Handle Repositories
+update_repo() {
+    local dir=$1
+    local repo=$2
+    if [ ! -d "$dir" ]; then
+        echo "Cloning $dir..."
+        git clone "$repo" "$dir"
+    else
+        echo "Updating $dir..."
+        cd "$dir" && git pull origin master && cd ..
+    fi
+}
 
-if [ ! -d "service-orders" ]; then
-    git clone git@github.com:BonBonSlick/2026_test_task_orders_ms_api.git service-orders
-fi
+update_repo "service-products" "git@github.com:BonBonSlick/2026_test_task_products_ms_api.git"
+update_repo "service-orders" "git@github.com:BonBonSlick/2026_test_task_orders_ms_api.git"
 
 # 2. Fire up Docker
 docker compose up -d --build
