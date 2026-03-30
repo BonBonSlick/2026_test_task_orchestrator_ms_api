@@ -23,3 +23,27 @@
 # run migration diff to get schema updated
 
 ```docker compose exec products-php php bin/console doctrine:migrations:diff```
+
+# Set up rmq
+
+```docker compose exec products-php php bin/console messenger:setup-transports```
+
+# Check Count
+
+```docker compose exec products-php php bin/console messenger:stats --format=json```
+
+# Start Worker
+
+```docker compose exec products-php php bin/console messenger:consume```
+
+# Clear Queue
+
+```docker compose exec products-php bin/console messenger:stop-workers```
+
+# Debug Logic
+
+```docker compose exec products-php php bin/console messenger:consume -vv```
+
+# Check service inside container
+
+```docker compose exec products-php ping messenger-hub```

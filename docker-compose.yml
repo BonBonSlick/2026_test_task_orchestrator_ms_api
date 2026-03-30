@@ -16,6 +16,14 @@ services:
     image: rabbitmq:3-management-alpine
     ports:
       - "15672:15672" # UI for the reviewer to see messages
+      - "5672:5672" # Mapping this allows you to test connection from your host machine
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./docker/rmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
 
   cache:
     image: redis:7-alpine
@@ -25,13 +33,9 @@ services:
     build: .
     volumes:
       - ./service-products:/var/www/html
-    environment:
-      # Use the correct user (symfony) and the DB you want to create/use
-      DATABASE_URL: "postgresql://symfony:password@database:5432/products_db?serverVersion=16.0.0"
-      DEFAULT_URI: "http://localhost:8081" # Matches products-web port
-      APP_ENV: dev
-      POSTGRES_VERSION: "16.0.0"
-      APP_SECRET: some_secret_string
+    depends_on:
+      messenger-hub:
+        condition: service_healthy # Wait for RabbitMQ to be "Healthy"
 
   products-web:
     image: nginx:alpine
@@ -50,19 +54,16 @@ services:
     build: .
     volumes:
       - ./service-orders:/var/www/html
-    environment:
-      DATABASE_URL: "postgresql://symfony:password@database:5432/orders_db"
-      POSTGRES_VERSION: "16.0.0"
-      DEFAULT_URI: "http://localhost:8082" # Matches orders-web port
-      APP_ENV: dev
-      APP_SECRET: some_secret_string
+    depends_on:
+      messenger-hub:
+        condition: service_healthy # Wait for RabbitMQ to be "Healthy"
 
   orders-web:
     image: nginx:alpine
     ports:
       - "8082:80"
     environment:
-      - PHP_UPSTREAM=orders-php # MUST match the service name below
+      - PHP_UPSTREAM=orders-php # MUST match the service name
     volumes:
       - ./service-orders:/var/www/html
       - ./docker/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
