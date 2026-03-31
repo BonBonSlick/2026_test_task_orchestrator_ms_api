@@ -49,6 +49,21 @@ services:
     depends_on:
       - products-php
 
+  # --- PRODUCTS WORKER ---
+  products-worker:
+    build:
+      context: ./service-products  # Points to the actual PHP project folder
+      dockerfile: ../Dockerfile
+    volumes:
+      - ./service-products:/var/www/html
+    command: php bin/console messenger:consume orders_transport -vv
+    restart: on-failure
+    depends_on:
+      messenger-hub:
+        condition: service_healthy
+    environment:
+      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@messenger-hub:5672/%2f/order
+
   # --- MICROSERVICE: ORDERS ---
   orders-php:
     build: .
@@ -69,6 +84,21 @@ services:
       - ./docker/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
     depends_on:
       - orders-php
+
+  # --- ORDERS WORKER ---
+  orders-worker:
+    build:
+      context: ./service-orders  # Points to the actual PHP project folder
+      dockerfile: ../Dockerfile
+    volumes:
+      - ./service-orders:/var/www/html
+    command: php bin/console messenger:consume products_transport -vv
+    restart: on-failure
+    depends_on:
+      messenger-hub:
+        condition: service_healthy
+    environment:
+      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@messenger-hub:5672/%2f/product
 
 volumes:
   db-data:

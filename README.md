@@ -2,6 +2,8 @@
 - run ```bash setup.sh```
 - use postman to test API
 
+- http://localhost:15672 use for rmq management console with credentials guest:guest
+
 ### Additional commands:
 
 # Restart all containers
